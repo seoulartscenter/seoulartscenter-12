@@ -203,7 +203,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>2025년도 제11기 훈련생 온라인 지원</h1>
+            <h1>2025년도 제12기 훈련생 온라인 지원</h1>
         </div>
 
         <div class="step-navigation">
@@ -219,11 +219,11 @@
                 <ul class="info-list">
                     <li><strong>모집 과정:</strong> [2025 예술의전당 무대음향 훈련생모집]</li>
                     <li><strong>모집 기수:</strong> 제11기</li>
-                    <li><strong>교육 기간:</strong> 2025년10월27일 ~ 2026년03월27일 (총 6개월)</li>
-                    <li><strong>접수 기간:</strong> 2025년10월20일 ~ 2025년10월26일</li>
+                    <li><strong>교육 기간:</strong> 2025년12월01일 ~ 2026년05월03일 (총 6개월)</li>
+                    <li><strong>접수 기간:</strong> 2025년11월10일 ~ 2025년11월14일</li>
                 </ul>
                 <div class="info-block">
-                    <strong>안 내:</strong> 이번 기수는 총 40명을 선발하여 운용합니다. 그러나 중간 탈락자가 발생할 수 있기에 추가 인원 또 한도 예비 번호로 알려드릴 예정입니다 합격 메일에 "선발 "이라 있으면 합격자이시며 "예비 1"은 탈락자는 아니지만 정규 선발자 탈락 시 추가 합격이 될 수 있습니다 그 외" 탈락/다음 기수 때 지원해 주시라고 통보받으신 분들은 탈락자들입니다.
+                    <strong>안 내:</strong> 이번 기수는 총 40명을 선발하여 운용합니다. ... (이하 생략)
                 </div>
             </div>
 
@@ -243,6 +243,26 @@
                             <option value="" disabled selected>출생년도를 선택하세요</option>
                         </select>
                     </div>
+
+                    <fieldset id="minorConsentSection" style="display: none; border-color: #d93025; background-color: #fefaf9;">
+                        <legend style="color: #d93025; font-weight: bold;">미성년자 지원자 안내</legend>
+                        <p style="font-size: 15px; color: #333; margin-top: 0; line-height: 1.6;">
+                            선택하신 출생년도는 미성년자(만 19세 미만)에 해당합니다.<br>
+                            지원을 위해 법정대리인(보호자)의 동의가 반드시 필요합니다.
+                        </p>
+                        <div class="form-group">
+                            <label for="parentName">법정대리인 성명 <span class="required-star">*</span></label>
+                            <input type="text" id="parentName" name="법정대리인 성명" placeholder="보호자 성명을 입력하세요">
+                        </div>
+                        <div class="form-group">
+                            <label for="parentContact">법정대리인 연락처 <span class="required-star">*</span></label>
+                            <input type="tel" id="parentContact" name="법정대리인 연락처" placeholder="'-' 없이 숫자만 입력 (예: 01012345678)" maxlength="11">
+                        </div>
+                        <div class="agreement-group">
+                            <input type="checkbox" id="minorAgreement" name="법정대리인 동의">
+                            <label for="minorAgreement">본인은 위 사항을 확인하였으며, 법정대리인으로서 지원자의 지원에 동의합니다. <span class="required-star">*</span></label>
+                        </div>
+                    </fieldset>
                     <div class="form-group">
                         <label>성별 <span class="required-star">*</span></label>
                         <div class="gender-group">
@@ -347,7 +367,6 @@
         const submitBtn = document.getElementById('submitBtn');
         const stepTabs = document.querySelectorAll('.step-tab');
         const formSteps = document.querySelectorAll('.form-step');
-
         function showStep(stepNumber) {
             formSteps.forEach(step => step.classList.remove('active'));
             stepTabs.forEach(tab => tab.classList.remove('active'));
@@ -439,16 +458,11 @@
             birthYearSelect.appendChild(option);
         }
 
-        /*
-        ==================================================
-        === [ 5. (수정) JSON 파일 기반 안내창 기능 ] ===
-        ==================================================
-        */
+        // --- 5. JSON 파일 기반 안내창 기능 (이전과 동일) ---
         const noticeModal = document.getElementById("noticeModal");
         const noticeModalContent = document.getElementById("noticeModalContent");
         const closeBtn = noticeModal.querySelector(".close-button");
         const closeBtn2 = document.getElementById("closeModalBtn");
-
         function closeModal() {
           noticeModal.style.display = "none";
         }
@@ -459,31 +473,54 @@
             closeModal();
           }
         });
-
-        // 페이지 로드 시 localStorage 대신 notice.json 파일을 읽어옵니다.
         window.addEventListener('load', () => {
-            fetch('notice.json') // notice.json 파일 요청
+            fetch('notice.json?v=' + new Date().getTime()) // 캐시 방지용 파라미터 추가
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error('네트워크 응답이 올바르지 않습니다.');
-                    }
-                    return response.json(); // 응답을 JSON으로 파싱
+                    if (!response.ok) { throw new Error('Network response was not ok'); }
+                    return response.json();
                 })
                 .then(data => {
-                    const noticeText = data.content; // JSON 파일의 "content" 값을 가져옴
-                    
-                    // 내용이 비어있지 않다면 모달을 띄웁니다.
-                    if (noticeText && noticeText.trim() !== "") {
-                        noticeModalContent.innerText = noticeText; 
+                    if (data.content && data.content.trim() !== "") {
+                        noticeModalContent.innerText = data.content; 
                         noticeModal.style.display = "block";
                     }
                 })
                 .catch(error => {
-                    // notice.json 파일이 없거나 오류가 발생하면 콘솔에만 에러를 표시합니다.
                     console.error('안내 파일(notice.json)을 불러오는 데 실패했습니다:', error);
                 });
         });
-        // ============================================
+        
+        /*
+        ==================================================
+        === [ 6. (추가) 미성년자 법정대리인 동의 기능 ] ===
+        ==================================================
+        */
+        // 4번 항목에서 'birthYearSelect' 변수가 이미 생성되었습니다.
+        const minorConsentSection = document.getElementById('minorConsentSection');
+        const parentNameInput = document.getElementById('parentName');
+        const parentContactInput = document.getElementById('parentContact');
+        const minorAgreementCheckbox = document.getElementById('minorAgreement');
+
+        // 출생년도 선택 시 이벤트 리스너
+        birthYearSelect.addEventListener('change', function() {
+            const selectedYear = parseInt(this.value, 10);
+            
+            // 2025년 기준, 2006년생(만 19세)부터 성인.
+            // 2007년생(만 18세), 2008년생(만 17세)은 미성년자.
+            if (selectedYear > 2006) {
+                // 미성년자: 섹션 보이기 및 필드 '필수'로 변경
+                minorConsentSection.style.display = 'block';
+                parentNameInput.required = true;
+                parentContactInput.required = true;
+                minorAgreementCheckbox.required = true;
+            } else {
+                // 성년자: 섹션 숨기기 및 필드 '필수' 해제
+                minorConsentSection.style.display = 'none';
+                parentNameInput.required = false;
+                parentContactInput.required = false;
+                minorAgreementCheckbox.required = false;
+            }
+        });
 
     </script>
 </body>
